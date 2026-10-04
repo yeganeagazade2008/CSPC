@@ -2,6 +2,11 @@
 
 Repository for CSPC practical work assignments.
 
+## PW1 --- Lab A
+
+- **Setup & Environment:** Configured conda virtual environment and directory structure.
+- **Git Version Control:** Set up repository with appropriate `.gitignore` and version-controlled scripts.
+
 ## PW1 --- Lab B
 
 - **Data Analysis:** The observed data displays an exponential decay trend over time.
