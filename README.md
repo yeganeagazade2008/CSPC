@@ -31,3 +31,18 @@ Differentiation amplifies high-frequency noise because it compares nearby measur
 
 ### Visualisation
 ![Motion Analysis](PW2/Lab%20A/motion.png)
+
+## PW2 - Lab B: Optimization in Chemistry
+
+### Part 2: Optimization Methods
+- **Convex Function:** All three methods (Gradient Descent, Newton, SLSQP) converged to x ≈ 3.
+- **Complex Landscape:** Starting points heavily affect the result. Newton's method finds stationary points (where f'(x)=0), which can be local maxima or minima. Checking the second derivative (f''(x) > 0) is necessary to confirm a minimum.
+
+### Part 3: Reaction Rate Fitting
+- Fitted rate constant \(k \approx 0.25 \text{ s}^{-1}\).
+
+### Part 4: Chemical Equilibrium
+- Both Newton and SLSQP yielded \(x \approx 0.66\), giving equilibrium amounts: \(n_{H_2} = n_{I_2} \approx 0.34 \text{ mol}\), \(n_{HI} \approx 1.33 \text{ mol}\).
+
+### Part 5: Titration Equivalence Point
+- Peak slope identified equivalence point at \(V \approx 50 \text{ mL}\).
