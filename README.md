@@ -46,3 +46,17 @@ Differentiation amplifies high-frequency noise because it compares nearby measur
 
 ### Part 5: Titration Equivalence Point
 - Peak slope identified equivalence point at \(V \approx 50 \text{ mL}\).
+
+# Practical Work 3 (PW3) Report
+
+## Session 1: Characterising Distributions
+- **Data Loading & Isolation**: Loaded `heart.csv` using pandas, extracted continuous variables (`age`, `chol`, `trestbps`, `thalach`).
+- **Visualisation**: Generated distribution plots (`distributions.png`).
+- **Normality Tests**: Conducted Shapiro-Wilk tests. `age` and `thalach` are approximately normal, whereas `chol` and `trestbps` deviate from normality due to right-skewness.
+
+## Session 2: Conclusions & Causation
+- **Heart Rate Comparison**: Compared maximum heart rates (`thalach`) between disease and healthy groups using statistical testing and visualised with SEM uncertainty (`thalach_comparison.png`).
+- **Correlation**: Analysed the relationship between age and max heart rate (`age_thalach_corr.png`).
+- **Chemical Mystery**: 
+  - *Naive Analysis*: Benzene appeared strongly associated with malignancy.
+  - *Controlled Analysis*: After controlling for the confounding variable (`pollution_index`), the false association was revealed, showing the true nature of correlation vs. causation.
