@@ -135,3 +135,39 @@ print(f"Agreement Score (Scaled K-Means): {agreement:.4f}")
 agreement_df = pd.DataFrame({"Model": ["Scaled K-Means"], "Agreement": [agreement]})
 agreement_df.to_csv("results/B_agreement.csv", index=False)
 print("Agreement saved to 'results/B_agreement.csv'")
+# --- BONUS: ELBOW METHOD & PCA SCATTER PLOT ---
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+
+# 1. Elbow Method to find optimal k
+inertia = []
+K_range = range(1, 10)
+for k in K_range:
+    kmeans = KMeans(n_clusters=k, random_state=0, n_init=10)
+    kmeans.fit(Z)
+    inertia.append(kmeans.inertia_)
+
+plt.figure(figsize=(8, 4))
+plt.plot(K_range, inertia, marker='o', linestyle='-', color='purple')
+plt.xlabel('Number of clusters (k)')
+plt.ylabel('Inertia')
+plt.title('Elbow Method For Optimal k')
+plt.grid(True)
+plt.savefig('results/kmeans_elbow.png')
+plt.close()
+
+# 2. PCA 2D Scatter Plot colored by true cultivars
+pca_2d = PCA(n_components=2)
+Z_2d = pca_2d.fit_transform(Z)
+
+plt.figure(figsize=(8, 6))
+scatter = plt.scatter(Z_2d[:, 0], Z_2d[:, 1], c=cultivar, cmap='viridis', edgecolor='k', alpha=0.8)
+plt.xlabel('PC1')
+plt.ylabel('PC2')
+plt.title('PCA 2D Projection of Wine Dataset')
+plt.colorbar(scatter, label='Cultivar')
+plt.grid(True)
+plt.savefig('results/pca_scatter.png')
+plt.close()
+
+print("\nBonus results (Elbow plot and PCA scatter plot) saved to 'results/'!")
