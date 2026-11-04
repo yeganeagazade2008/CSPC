@@ -406,3 +406,33 @@ bonus_train_r2 = r2_score(y_train, bonus_reg.predict(X_train_bonus))
 print(f"Bonus Model Features Count: {X_train_bonus.shape[1]}")
 print(f"Bonus Train R2: {bonus_train_r2:.4f}")
 print(f"Bonus Test R2: {bonus_test_r2:.4f}")
+# --- BONUS: FEATURE IMPORTANCE ANALYSIS (Session A) ---
+from sklearn.ensemble import RandomForestRegressor
+import matplotlib.pyplot as plt
+import pandas as pd
+
+# 1. Train a Random Forest model to check feature importance for concrete strength
+# (Assuming X_train and y_train are already defined in your sessionA script)
+rf = RandomForestRegressor(random_state=0)
+rf.fit(X_train, y_train)
+
+# 2. Create a DataFrame for feature importances
+importance_df = pd.DataFrame({
+    'Feature': X_train.columns,
+    'Importance': rf.feature_importances_
+}).sort_values(by='Importance', ascending=True)
+
+# 3. Plot and save feature importance
+plt.figure(figsize=(8, 5))
+plt.barh(importance_df['Feature'], importance_df['Importance'], color='teal')
+plt.xlabel('Feature Importance')
+plt.ylabel('Features')
+plt.title('Feature Importance for Concrete Compressive Strength')
+plt.grid(axis='x', linestyle='--', alpha=0.7)
+plt.tight_layout()
+plt.savefig('results/feature_importance.png')
+plt.close()
+
+# Save CSV version as well
+importance_df.to_csv('results/feature_importance.csv', index=False)
+print("\nBonus Session A results (Feature Importance plot and CSV) saved to 'results/'!")
