@@ -1,0 +1,11 @@
+rule all:
+    input:
+        "results/B_agreement.csv"
+
+rule session_b:
+    input:
+        "sessionB.py"
+    output:
+        "results/B_agreement.csv"
+    shell:
+        "python3 sessionB.py"
