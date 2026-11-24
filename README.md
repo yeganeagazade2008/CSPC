@@ -133,3 +133,148 @@ PW4/
     ├── A_metrics.csv
     ├── B3_scree_plot.png
     └── B_agreement.csv
+
+
+    # PW5: Where was the earthquake, and how strong?
+
+All results below come from `data/seismogram_A.csv` (steps 1-8) and from both records (steps 9-10).
+Sampling rate: fs = 100 Hz, record length 300 s, 30000 samples.
+
+> Note: my first copy of `seismogram_A.csv` was truncated (only 1061 lines, the last line was cut in the middle of a number).
+> I downloaded it again; the final file has 30000 samples like seismogram_B.
+
+## 1. Look at the record
+
+![three channels](figures/step1.png)
+![first 60 s](figures/step1_zoom.png)
+
+The record starts quiet. At about 108 s a weaker shaking begins (P-wave), and at about 144 s a much stronger one begins (S-wave).
+After that the amplitude slowly decays until the end of the record. The P-wave is clearest on the vertical channel Z.
+The S-wave is largest on the horizontal channels N and E (about 10 mm/s, against about 4 mm/s on Z).
+
+In the first 60 s the station is not really still: all three channels show a continuous slow oscillation of about ±0.005 mm/s.
+This is the background noise of the Earth (microseism), visible only when zooming in, because the earthquake is about 1000 times larger.
+
+## 2. The spectrum
+
+![index vs frequency](figures/step2a.png)
+![log-log spectra](figures/step2b.png)
+
+(a) The FFT returns one number per sample, ordered by array index, which has no physical meaning.
+`fftfreq` tells which frequency in Hz belongs to each index, so the x-axis becomes a real frequency axis from -50 to +50 Hz (fs/2 is the maximum).
+The spectrum is mirrored around 0 Hz because the signal is real: the value at -f is the complex conjugate of the value at +f, so the negative half carries no new information.
+
+(b) The quiet part (first 60 s) has its maximum at about 0.1-0.3 Hz, which is the microseism caused by ocean waves.
+Above about 1 Hz it falls to a flat low level of about 1e-8 m/s.
+The whole record is higher than the quiet part at all frequencies, by two to three orders of magnitude above 1 Hz.
+The earthquake adds most of its energy between about 0.1 and 10 Hz, strongest below about 1 Hz, and it fades quickly above 10 Hz.
+
+## 3. Inverse transform and band-pass filter
+
+![raw and filtered Z](figures/step3b.png)
+![Z - clean](figures/step3c.png)
+
+(a) `np.allclose(np.fft.ifft(np.fft.fft(Z)).real, Z)` is `True`.
+Filtering in the frequency domain means: transform to frequencies, delete some of them, and go back to time.
+This only works because the inverse transform brings back exactly the original signal when nothing is deleted. Without that, the filtered result would be distorted by the transform itself.
+
+(b) I used `bandpass(x, fs, 0.5, 10)`.
+Below 0.5 Hz the spectrum is dominated by the microseism (peak at 0.1-0.3 Hz), which hides the weak P arrival.
+Above 10 Hz the earthquake energy is already small and falls off, so only noise would be kept.
+The band 0.5-10 Hz keeps the part where the earthquake is much stronger than the noise.
+
+(c) `Z - clean` shows what was removed: almost nothing before the earthquake (the microseism is tiny)
+and, after about 108 s, slow large oscillations, strongest around 150-170 s.
+So the removed part is mainly the low-frequency part of the earthquake itself (below 0.5 Hz), not just noise.
+This is fine for finding arrival times, which is why PGV is computed from the raw signal (step 8).
+
+## 4. The envelope
+
+![envelopes, 0.5 s](figures/step4a.png)
+![windows 0.05 s, 0.5 s, 5 s](figures/step4b.png)
+
+With a window of 0.05 s the envelope is very jagged: it follows every single oscillation, and one random spike can cross a threshold.
+With 5 s the envelope is very smooth, but the sharp start of the P and S waves is spread out.
+With "same" mode the window looks forward and backward, so the envelope starts rising before the real onset, and the detected arrival would be too early.
+0.5 s is a compromise: smooth enough to be stable, short enough to keep a sharp onset.
+
+## 5. Arrival times
+
+![arrivals](figures/step5.png)
+
+- tP = 108.42 s (first time the Z envelope exceeds 5 % of its maximum)
+- tS = 144.08 s (first time after tP + 2 s that the horizontal envelope exceeds 10 % of its maximum)
+- the maximum of the horizontal envelope is at 152.03 s (find_peaks), that is 7.95 s after tS
+
+The arrival time is when the shaking starts, not when it is strongest.
+Using the maximum would make tS - tP too large by about 7.95 s, and since R is proportional to tS - tP (8.6 km per second), R would be too large by about 68 km.
+
+## 6. Distance
+
+R = (tS - tP) / (1/vS - 1/vP) = 35.66 s x 8.585 km/s, which gives **R ≈ 306 km**.
+
+If tS is uncertain by 1 s, R changes by 8.6 km (about 2.8 %).
+Origin time = tP - R/vP = **59.0 s** after the start of the record.
+
+## 7. Spectrogram
+
+![spectrogram of Z](figures/step7.png)
+
+Before about 105 s the spectrogram is dark (quiet), with only a thin bright line near 0 Hz (the microseism).
+At about 108 s there is a sudden jump in power over the whole 0-10 Hz range: this is the P-wave.
+At about 144 s a second, stronger jump appears, brightest at low frequencies (0-4 Hz): the S-wave.
+After that the energy slowly decays and stays longer at low frequencies, which is where the later, slower waves are.
+In this record the P-wave is the one that reaches the highest frequencies, and the later part is dominated by low frequencies.
+The surface waves are not a clearly separated band in this synthetic record.
+
+A single spectrum (step 2) gives the frequency content of the whole record but loses the time information.
+The spectrogram shows which frequencies are present at which time, so the different wave types can be separated.
+
+## 8. Magnitude
+
+PGV (maximum of sqrt(N² + E²) of the raw record) = **1.51 cm/s**, and
+
+M = (log10(1.51) + log10(306.1) + 1.0) / 0.55 = **6.66**
+
+Why log10 R: waves get weaker with distance (the energy spreads over a larger volume and is absorbed by the rock).
+The same earthquake recorded farther away gives a smaller PGV. Without the log10 R term the farther station would underestimate the magnitude.
+At twice the distance the correction is log10(2)/0.55 ≈ 0.55 magnitude units.
+
+One magnitude unit more at the same distance means log10 PGV increases by 0.55, so PGV is 10^0.55 ≈ **3.55 times larger** with this formula.
+(The task text says "about 10 times larger ground motion"; with this formula the factor is 3.55.)
+
+## 9. The whole system
+
+`analyse.py` contains the function `analyse(csv_file)` (filter, envelopes, tP, tS, R, origin time, PGV, M) and was run on both records without changing anything.
+`report.py` reads `results/events.csv` and writes `results/report.txt`.
+
+| Record | tP (s) | tS (s) | R (km) | PGV (cm/s) | M |
+|---|---|---|---|---|---|
+| A | 108.42 | 144.08 | 306.1 | 1.51 | 6.66 |
+| B | 84.25 | 102.43 | 156.1 | 0.571 | 5.36 |
+
+Earthquake B was **closer** (156 km against 306 km), and earthquake A was **stronger** (M 6.66 against 5.36).
+Being closer does not mean being stronger: B is nearer, but its PGV is smaller, and the magnitude, which corrects for distance, is also smaller.
+Both records give almost the same origin time (59.0 s and 59.1 s), which is a good consistency check of the method.
+
+## 10. Snakemake
+
+**(a)** After `rm -rf results` and `snakemake --cores 1`, all three rules ran (analyse, report, all).
+Reason shown: `Missing output files: results/events.csv`.
+
+**(b)** Running it again: `Nothing to be done (all requested files are present and up to date).`
+The outputs exist and are newer than all their inputs, so nothing needs to be recomputed.
+
+**(c)** After changing only the wording in `report.py`, only `report` and `all` ran (reason: `Updated input files: report.py`), `analyse` did not.
+The inputs of `analyse` did not change, so `events.csv` is still valid.
+
+**(d)** After changing the cut-off b in `analyse.py`, `analyse`, `report` and `all` all ran
+(reasons: `Updated input files: analyse.py`, then `Input files updated by another job: results/events.csv`).
+With b = 8 Hz the results changed slightly (for A: R = 306.6 km, M = 6.67).
+The difference with (c) is what I want from a pipeline: a change at the start of the chain makes everything that depends on it outdated, so it is recomputed,
+while a change at the end only reruns the last step. Results always match the current code, and nothing is recomputed for no reason.
+Afterwards I set b back to 10 Hz and reran, so the final `results/` use 0.5-10 Hz.
+
+## Bonus
+
+Not done.

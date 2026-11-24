@@ -1,0 +1,3 @@
+seismogram_A.csv: P arrived at 108.4 s and S at 144.1 s, so the earthquake lies 306 km away and happened at 59.0 s. Peak ground velocity 1.51 cm/s, magnitude 6.7.
+seismogram_B.csv: P arrived at 84.2 s and S at 102.4 s, so the earthquake lies 156 km away and happened at 59.1 s. Peak ground velocity 0.57 cm/s, magnitude 5.4.
+Closer earthquake: seismogram_B.csv. Stronger earthquake: seismogram_A.csv.
